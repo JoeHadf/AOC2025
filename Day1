@@ -1,0 +1,38 @@
+            string[] input = File.ReadAllLines(@"C:\\Users\\Josep\\Documents\\AOC2025\\Day1.txt");
+
+            int dial = 50;
+            int passwordCount = 0;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                string line = input[i];
+                int turn = int.Parse(line.Substring(1));
+                
+                if (input[i][0] == 'L')
+                {
+                    turn *= -1;
+                }
+
+                bool initAtZero = dial == 0;
+
+                dial += turn;
+
+                if (dial == 0)
+                {
+                    passwordCount++;
+                }
+                else
+                {
+                    int count = (dial > 0 || initAtZero) ? Math.Abs(dial / 100) : Math.Abs(dial / 100) + 1;
+                    passwordCount += count;
+                }
+                
+                dial %= 100;
+
+                if (dial < 0)
+                {
+                    dial += 100;
+                }
+            }
+            
+            Console.WriteLine(passwordCount);
