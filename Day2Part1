@@ -1,0 +1,128 @@
+            string input = File.ReadAllText(@"C:\Users\Josep\Documents\AOC2025\Day2.txt");
+            
+            char[] deliminators = new[] { '-', ',' };
+            string[] splitInput = input.Split(deliminators);
+
+            int rangeCount = splitInput.Length / 2;
+
+            long invalidIDSum = 0;
+
+            for (int i = 0; i < rangeCount; i++)
+            {
+                string lower = splitInput[2 * i];
+                string upper = splitInput[2 * i + 1];
+
+                long lowerValue;
+                long upperValue;
+
+                string lowerHalf;
+                string upperHalf;
+
+                long lowerHalfValue;
+                long upperHalfValue;
+
+                if (lower.Length % 2 == 1)
+                {
+                    lower = new string('0', lower.Length / 2);
+                    lower = '1' + lower;
+                    lowerHalf = lower;
+                    lowerHalfValue = long.Parse(lowerHalf);
+                    lower = lower + lower;
+
+                    lowerValue = long.Parse(lower);
+                }
+                else
+                {
+                    string topHalf = lower.Substring(0, (lower.Length / 2));
+                    string bottomHalf = lower.Substring(lower.Length / 2, lower.Length / 2);
+
+                    long topHalfValue = long.Parse(topHalf);
+                    long bottomHalfValue = long.Parse(bottomHalf);
+
+                    if (bottomHalfValue > topHalfValue)
+                    {
+                        topHalfValue++;
+                        topHalf = topHalfValue.ToString();
+                    }
+                    
+                    lowerHalf = topHalf;
+                    lowerHalfValue = long.Parse(lowerHalf);
+                    lower = topHalf + topHalf;
+
+                    lowerValue = long.Parse(lower);
+                }
+
+                if (upper.Length % 2 == 1)
+                {
+
+                    upper = new string('9', upper.Length - 1);
+                    upperHalf = new string('9', upper.Length / 2);
+                    upperHalfValue = long.Parse(upperHalf);
+                    upperValue = long.Parse(upper);
+                }
+                else
+                {
+                    string topHalf = upper.Substring(0, (upper.Length / 2));
+                    string bottomHalf = upper.Substring(upper.Length / 2, upper.Length / 2);
+
+                    long topHalfValue = long.Parse(topHalf);
+                    long bottomHalfValue = long.Parse(bottomHalf);
+
+                    if (bottomHalfValue < topHalfValue)
+                    {
+                        topHalfValue--;
+                        topHalf = topHalfValue.ToString();
+                    }
+                    
+                    upper = topHalf + topHalf;
+                    upperHalf = topHalf;
+                    upperHalfValue = long.Parse(upperHalf);
+                    upperValue = long.Parse(upper);
+                }
+                
+                if (lowerValue > upperValue)
+                {
+                    continue;
+                }
+
+                bool lowerIsLessThanUpper = true;
+
+                while (lowerIsLessThanUpper)
+                {
+                    string differenceString = new string('0', lowerHalf.Length);
+                    differenceString = '1' + differenceString;
+
+                    int difference = int.Parse(differenceString) + 1;
+                    
+                    if (lower.Length < upper.Length)
+                    {
+                        string tempUpperHalf = new string('9', lowerHalf.Length / 2);
+                        string tempUpper = tempUpperHalf + tempUpperHalf;
+                        int tempUpperValue = int.Parse(tempUpper);
+                        
+                        long amountOfInvalidIDs = tempUpperValue - lowerHalfValue + 1;
+                        invalidIDSum += (amountOfInvalidIDs * lowerValue) +
+                                        (difference * amountOfInvalidIDs * (amountOfInvalidIDs - 1)) / 2;
+
+                        lowerHalfValue++;
+                        lowerHalf = lowerHalfValue.ToString();
+                        lower = lowerHalf + lowerHalf;
+                        lowerValue = int.Parse(lower);
+
+                        if (lower.Length > upper.Length)
+                        {
+                            lowerIsLessThanUpper = false;
+                        }
+                    }
+                    else
+                    {
+                        long amountOfInvalidIDs = upperHalfValue - lowerHalfValue + 1;
+                        invalidIDSum += (amountOfInvalidIDs * lowerValue) +
+                                        (difference * amountOfInvalidIDs * (amountOfInvalidIDs - 1)) / 2;
+
+                        lowerIsLessThanUpper = false;
+                    }
+                }
+            }
+            
+            Console.WriteLine(invalidIDSum);
