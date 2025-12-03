@@ -1,0 +1,34 @@
+            string[] input = File.ReadAllLines(@"C:\Users\Josep\Documents\AOC2025\Day3.txt");
+
+            long joltageSum = 0;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                string inputLine = input[i];
+
+                char[] joltageChars = new char[12];
+                int charCount = 0;
+                int currentIndex = -1;
+
+                for (int k = 0; k < joltageChars.Length; k++)
+                {
+                    int nextIndex = -1;
+                    
+                    for (int j = currentIndex + 1; j < inputLine.Length - joltageChars.Length + charCount + 1; j++)
+                    {
+                        if (inputLine[j] > joltageChars[k])
+                        {
+                            joltageChars[k] = inputLine[j];
+                             nextIndex = j;
+                        }
+                    }
+
+                    charCount++;
+                    currentIndex = nextIndex;
+                }
+
+                string joltage = new string(joltageChars);
+                joltageSum += long.Parse(joltage);
+            }
+            
+            Console.WriteLine(joltageSum);
