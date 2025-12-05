@@ -1,0 +1,135 @@
+    internal class Program
+    {
+        public static void Main(string[] args)
+        {
+            string[] input = File.ReadAllLines(@"C:\Users\Josep\Documents\AOC2025\Day5.txt");
+
+            bool isFormattingAvailableIDs = false;
+
+            List<Range> freshRanges = new List<Range>(input.Length);
+            List<long> availableIDs = new List<long>(input.Length);
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                string currentLine = input[i];
+
+                if (currentLine == "")
+                {
+                    isFormattingAvailableIDs = true;
+                    continue;
+                }
+
+                if (isFormattingAvailableIDs)
+                {
+                    long currentID = long.Parse(currentLine);
+                    availableIDs.Add(currentID);
+                }
+                else
+                {
+                    string[] splitLine = currentLine.Split('-');
+                    long currentLower = long.Parse(splitLine[0]);
+                    long currentUpper = long.Parse(splitLine[1]);
+
+                    Range range = new Range(currentLower, currentUpper);
+                    freshRanges.Add(range);
+                }
+            }
+
+            freshRanges.Sort((range1, range2) => range1.lowerBound.CompareTo(range2.lowerBound));
+            availableIDs.Sort();
+
+            long availableFreshIDs = 0;
+
+            int currentRangeIndex = 0;
+            Range currentRange = freshRanges[currentRangeIndex];
+
+            for (int i = 0; i < availableIDs.Count; i++)
+            {
+                long currentID = availableIDs[i];
+                
+                bool isAboveRange = currentID > currentRange.upperBound;
+
+                while (isAboveRange)
+                {
+                    currentRangeIndex++;
+                    currentRange = freshRanges[currentRangeIndex];
+                        
+                    isAboveRange = currentID > currentRange.upperBound;
+                }
+                
+                if (currentRange.IsInRange(currentID))
+                {
+                    availableFreshIDs++;
+                }
+            }
+            
+            Console.WriteLine(availableFreshIDs);
+
+            List<Range> combinedRanges = new List<Range>(freshRanges.Count);
+            Range currentCombination = freshRanges[0];
+
+            for (int i = 1; i < freshRanges.Count; i++)
+            {
+                Range rangeToCombine = freshRanges[i];
+                if (rangeToCombine.TryCombineRanges(currentCombination, out Range newCombination))
+                {
+                    currentCombination = newCombination;
+                }
+                else
+                {
+                    combinedRanges.Add(currentCombination);
+                    currentCombination = rangeToCombine;
+                }
+            }
+            
+            combinedRanges.Add(currentCombination);
+
+            long totalFreshIDs = 0;
+
+            for (int i = 0; i < combinedRanges.Count; i++)
+            {
+                totalFreshIDs += combinedRanges[i].size;
+            }
+            
+            Console.WriteLine(totalFreshIDs);
+
+        }
+
+        public struct Range
+        {
+            public long lowerBound { get; private set; }
+            public long upperBound { get; private set; }
+
+            public long size => upperBound - lowerBound + 1;
+
+            public Range(long lowerBound, long upperBound)
+            {
+                this.lowerBound = lowerBound;
+                this.upperBound = upperBound;
+            }
+
+            public bool IsInRange(long value)
+            {
+                return lowerBound <= value && value <= upperBound;
+            }
+
+            public bool CanCombine(Range otherRange)
+            {
+                return this.IsInRange(otherRange.lowerBound) || this.IsInRange(otherRange.upperBound) || otherRange.IsInRange(this.lowerBound) || otherRange.IsInRange(this.upperBound);
+            }
+            
+            public bool TryCombineRanges(Range otherRange, out Range combinedRange)
+            {
+                if (this.CanCombine(otherRange))
+                {
+                    combinedRange = new Range(Math.Min(this.lowerBound, otherRange.lowerBound),
+                        Math.Max(this.upperBound, otherRange.upperBound));
+                    return true;
+                }
+
+                combinedRange = new Range(-1, -1);
+                return false;
+            }
+            
+        }
+    }
