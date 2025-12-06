@@ -1,0 +1,77 @@
+            string[] input = File.ReadAllLines(@"C:\Users\Josep\Documents\AOC2025\Day4.txt");
+
+            int columnCount = input[0].Length;
+            char[,] paddedInput = new char[input.Length + 2, columnCount + 2];
+
+            for (int i = 0; i < paddedInput.GetLength(0); i++)
+            {
+                if (i == 0 || i == paddedInput.GetLength(0) - 1)
+                {
+                    for (int j = 0; j < paddedInput.GetLength(1); j++)
+                    {
+                        paddedInput[i, j] = '.';
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < paddedInput.GetLength(1); j++)
+                    {
+                        if (j == 0 || j == paddedInput.GetLength(1) - 1)
+                        {
+                            paddedInput[i, j] = '.';
+                        }
+                        else
+                        {
+                            paddedInput[i, j] = input[i - 1][j - 1];
+                        }
+                    }
+                }
+            }
+
+            long totalAccessiblePapers = 0;
+
+            bool hasRemovedSomePapers = true;
+
+            while (hasRemovedSomePapers)
+            {
+                long currentAccessiblePapers = 0;
+                
+                for (int i = 0; i < paddedInput.GetLength(0); i++)
+                {
+                    for (int j = 0; j < paddedInput.GetLength(1); j++)
+                    {
+                        if (paddedInput[i,j] == '@')
+                        {
+                            int paperCount = 0;
+                            for (int a = -1; a <= 1; a++)
+                            {
+                                for (int b = -1; b <= 1; b++)
+                                {
+                                    if (a == 0 && b == 0)
+                                    {
+                                        continue;
+                                    }
+
+                                    char currentChar = paddedInput[i + a, j + b];
+                                    if (currentChar == '@')
+                                    {
+                                        paperCount++;
+                                    }
+                                }
+                            }
+
+                            if (paperCount < 4)
+                            {
+                                currentAccessiblePapers++;
+                                paddedInput[i, j] = '.';
+                            }
+                        }
+                    }
+                }
+
+                Console.WriteLine(currentAccessiblePapers);
+                totalAccessiblePapers += currentAccessiblePapers;
+                hasRemovedSomePapers = currentAccessiblePapers > 0;
+            }
+            
+            Console.WriteLine(totalAccessiblePapers);
