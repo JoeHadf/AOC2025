@@ -1,0 +1,63 @@
+            string[] input = File.ReadAllLines(@"C:\Users\Josep\Documents\AOC2025\Day6.txt");
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                input[i] = input[i] + " ";
+            }
+            
+            long grandTotal = 0;
+            List<int> currentNumbers = new List<int>(4);
+            char currentOperation = ' ';
+            
+            for (int i = 0; i < input[0].Length; i++)
+            {
+                char number0 = input[0][i];
+                char number1 = input[1][i];
+                char number2 = input[2][i];
+                char number3 = input[3][i];
+
+                char operation = input[4][i];
+
+                bool isEmptyColumn = number0 == ' ' && number1 == ' ' && number2 == ' ' && number3 == ' ';
+
+                if (isEmptyColumn)
+                {
+                    long total = 0;
+                    
+                    if (currentOperation == '+')
+                    {
+                        for (int j = 0; j < currentNumbers.Count; j++)
+                        {
+                            total += currentNumbers[j];
+                        }
+                    }
+                    else if (currentOperation == '*')
+                    {
+                        total = 1;
+                        
+                        for (int j = 0; j < currentNumbers.Count; j++)
+                        {
+                            total *= currentNumbers[j];
+                        }
+                    }
+
+                    grandTotal += total;
+                    
+                    currentNumbers.Clear();
+                    currentOperation = ' ';
+                }
+                else
+                {
+                    string currentNumberString = "" + number0 + number1 + number2 + number3;
+                    int currentNumber = int.Parse(currentNumberString);
+                    currentNumbers.Add(currentNumber);
+
+                    if (operation != ' ')
+                    {
+                        currentOperation = operation;
+                    }
+                }
+
+            }
+
+            Console.WriteLine(grandTotal);
