@@ -1,0 +1,124 @@
+    internal class Program
+    {
+        public static void Main(string[] args)
+        {
+            string[] input = File.ReadAllLines(@"C:\Users\Josep\Documents\AOC2025\Day7.txt");
+
+            HashSet<int> currentBeams = new HashSet<int>();
+            HashSet<int> nextBeams = new HashSet<int>();
+            
+            SplitterDictionary beamToSplitter = new SplitterDictionary();
+
+            for (int i = 0; i < input[0].Length; i++)
+            {
+                if (input[0][i] == 'S')
+                {
+                    currentBeams.Add(i);
+                    Splitter firstSplitter = new Splitter(1, i);
+                    beamToSplitter.Add(i, firstSplitter);
+                    firstSplitter.timelineCount = 1;
+                }
+            }
+            
+            for(int i = 1; i < input.Length - 1; i++)
+            {
+                foreach (int beam in currentBeams)
+                {
+                    if (input[i + 1][beam] == '^')
+                    {
+                        Splitter newSplitter = new Splitter(i + 1, beam);
+
+                        newSplitter.timelineCount = beamToSplitter.GetTimelineSum(beam);
+                        
+                        beamToSplitter.Clear(beam);
+                        
+                        beamToSplitter.Add(beam - 1, newSplitter);
+                        beamToSplitter.Add(beam + 1, newSplitter);
+                        
+                        nextBeams.Add(beam - 1);
+                        nextBeams.Add(beam + 1);
+                    }
+                    else
+                    {
+                        nextBeams.Add(beam);
+                    }
+                }
+                
+                currentBeams = new HashSet<int>(nextBeams);
+                nextBeams.Clear();
+            }
+            
+            Console.WriteLine(beamToSplitter.TotalTimelineSum());
+        }
+
+        public class SplitterDictionary
+        {
+            private Dictionary<int, List<Splitter>> beamToSplitter;
+
+            public SplitterDictionary()
+            {
+                beamToSplitter = new Dictionary<int, List<Splitter>>();
+            }
+
+            public void Add(int beam, Splitter splitter)
+            {
+                if (!beamToSplitter.ContainsKey(beam))
+                {
+                    beamToSplitter[beam] = new List<Splitter>();
+                }
+                
+                beamToSplitter[beam].Add(splitter);
+            }
+
+            public void Clear(int beam)
+            {
+                if (beamToSplitter.ContainsKey(beam))
+                {
+                    beamToSplitter[beam].Clear();
+                }
+            }
+
+            public long GetTimelineSum(int beam)
+            {
+                if (beamToSplitter.TryGetValue(beam, out List<Splitter> splitters))
+                {
+                    long timelineSum = 0;
+                    
+                    foreach (Splitter splitter in splitters)
+                    {
+                        timelineSum += splitter.timelineCount;
+                    }
+
+                    return timelineSum;
+                }
+
+                return 0;
+            }
+
+            public long TotalTimelineSum()
+            {
+                long totalTimeLineSum = 0;
+                
+                foreach (KeyValuePair<int, List<Splitter>> beamAndSplitters in beamToSplitter)
+                {
+                    totalTimeLineSum += GetTimelineSum(beamAndSplitters.Key);
+                }
+
+                return totalTimeLineSum;
+            }
+        }
+
+        public class Splitter
+        {
+            public long timelineCount;
+            
+            public int height { get; private set; }
+            public int location { get; private set; }
+            
+            public Splitter(int height, int location)
+            {
+                this.height = height;
+                this.location = location;
+            }
+        }
+    }
