@@ -1,0 +1,161 @@
+    internal class Program
+    {
+        public static void Main(string[] args)
+        {
+            string[] input = File.ReadAllLines(@"C:\Users\Josep\Documents\AOC2025\Day8.txt");
+
+            JunctionBox[] junctionBoxes = new JunctionBox[input.Length];
+
+            char[] deliminators = new char[] { ',' };
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                string currentLine = input[i];
+                string[] splitLine = currentLine.Split(deliminators);
+
+                int currentX = int.Parse(splitLine[0]);
+                int currentY = int.Parse(splitLine[1]);
+                int currentZ = int.Parse(splitLine[2]);
+
+                JunctionBox currentJunctionBox = new JunctionBox(i, currentX, currentY, currentZ);
+                junctionBoxes[i] = currentJunctionBox;
+            }
+
+
+            int boxDistanceCount = junctionBoxes.Length * (junctionBoxes.Length - 1) / 2;
+            List<BoxDistance> boxDistances = new List<BoxDistance>(boxDistanceCount);
+
+            for (int i = 0; i < junctionBoxes.Length - 1; i++)
+            {
+                JunctionBox box1 = junctionBoxes[i];
+                for (int j = i + 1; j < junctionBoxes.Length; j++)
+                {
+                    JunctionBox box2 = junctionBoxes[j];
+                    BoxDistance currentBoxDist = new BoxDistance(box1, box2);
+
+                    boxDistances.Add(currentBoxDist);
+                }
+            }
+
+            boxDistances.Sort((boxDist1, boxDist2) => boxDist1.squareDist.CompareTo(boxDist2.squareDist));
+
+            List<HashSet<int>> circuits = new List<HashSet<int>>();
+
+            int currentIndex = 0;
+            BoxDistance lastBoxDist = boxDistances[0];
+
+            bool[] boxIsInCircuit = new bool[junctionBoxes.Length];
+
+            bool allBoxesInOneCircuit = false;
+
+            while(!allBoxesInOneCircuit)
+            {
+                BoxDistance currentBoxDistance = boxDistances[currentIndex];
+                lastBoxDist = currentBoxDistance;
+                currentIndex++;
+
+                JunctionBox box1 = currentBoxDistance.box1;
+                JunctionBox box2 = currentBoxDistance.box2;
+
+                bool box1InCircuit = false;
+                int box1CircuitId = -1;
+
+                bool box2InCircuit = false;
+                int box2CircuitId = -1;
+
+                for (int j = 0; j < circuits.Count; j++)
+                {
+                    HashSet<int> currentCircuit = circuits[j];
+                    
+                    if (currentCircuit.Contains(box1.id))
+                    {
+                        box1InCircuit = true;
+                        box1CircuitId = j;
+                    }
+                    
+                    if (currentCircuit.Contains(box2.id))
+                    {
+                        box2InCircuit = true;
+                        box2CircuitId = j;
+                    }
+                }
+
+                if (!box1InCircuit && !box2InCircuit)
+                {
+                    HashSet<int> newCircuit = new HashSet<int>();
+                    newCircuit.Add(box1.id);
+                    newCircuit.Add(box2.id);
+
+                    boxIsInCircuit[box1.id] = true;
+                    boxIsInCircuit[box2.id] = true;
+                    
+                    circuits.Add(newCircuit);
+                }
+                else if (box1InCircuit && box2InCircuit)
+                {
+                    if (box1CircuitId != box2CircuitId)
+                    {
+                        HashSet<int> box1Circuit = circuits[box1CircuitId];
+                        HashSet<int> box2Circuit = circuits[box2CircuitId];
+                        
+                        box1Circuit.UnionWith(box2Circuit);
+                        circuits[box1CircuitId] = box1Circuit;
+                        circuits.RemoveAt(box2CircuitId);
+                    }
+                }
+                else if (box1InCircuit && !box2InCircuit)
+                {
+                    circuits[box1CircuitId].Add(box2.id);
+                    boxIsInCircuit[box2.id] = true;
+                }
+                else if (!box1InCircuit && box2InCircuit)
+                {
+                    circuits[box2CircuitId].Add(box1.id);
+                    boxIsInCircuit[box1.id] = true;
+                }
+
+                bool allBoxesInCircuit = Array.TrueForAll(boxIsInCircuit, boxStatus => boxStatus);
+                bool isOneCircuit = circuits.Count == 1;
+                
+                allBoxesInOneCircuit = allBoxesInCircuit && isOneCircuit;
+            }
+            
+            Console.WriteLine(lastBoxDist.box1.x + " " + lastBoxDist.box2.x);
+        }
+
+        public struct BoxDistance
+        {
+            public JunctionBox box1 { get; private set; }
+            public JunctionBox box2 { get; private set; }
+
+            public long squareDist { get; private set; }
+
+            public BoxDistance(JunctionBox box1, JunctionBox box2)
+            {
+                this.box1 = box1;
+                this.box2 = box2;
+
+                long xDiff = box2.x - box1.x;
+                long yDiff = box2.y - box1.y;
+                long zDiff = box2.z - box1.z;
+
+                this.squareDist = (xDiff * xDiff) + (yDiff * yDiff) + (zDiff * zDiff);
+            }
+        }
+
+        public struct JunctionBox
+        {
+            public int id { get; private set; }
+            public int x { get; private set; }
+            public int y { get; private set; }
+            public int z { get; private set; }
+
+            public JunctionBox(int id, int x, int y, int z)
+            {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.z = z;
+            }
+        }
+    }
